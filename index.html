@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown Live Preview</title>
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiTWFya2Rvd24gTGlmZSBQcmV2aWV3IiwiYm90dGxlbl9uYW1lIjoiTWFya2Rvd24gTGlmZSBQcmV2aWV3Iiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwZjE3MmEiLCJ0aGVtZV9jb2xvciI6IiMwZjE3MmEiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcranNvbix8fCIsInR5cGVzImk6InhtbC1zcGYsIiJzaXplcyI6IiIxOTJ4MTkyIn1dfQ==">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiTWFya2Rvd24gTGlmZSBQcmV2aWV3Iiwic2hvcnRfbmFtZSI6Ik1ETGl2ZSIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGYxNzJhIiwidGhlbWVfY29sb3IiOiIjMGYxNzJhIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0NzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgMTkyIDE5MiclM0UlMkNyZWN0IHdpZHRoPScxOTInIGhlaWdodD0nMTkyJyByeD0nNDAnIGZpbGw9JyUyMzYzNjZmMScvJTNFJTNDdGV4dCB4PSc5NicgeT0nMTM1JyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb250LXNpemU9JzEyMCcgZm9udC13ZWlnaHQ9J2JvbGQnIGZpbGw9J3doaXRlJyUzRU0lM0MvdGV4dCUzRSUzQy9zdmclM0UiLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCIsInB1cnBvc2UiOiJhbnkgbWFza2FibGUifV19">
     <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
@@ -113,7 +114,6 @@
             overflow: hidden;
         }
 
-        /* Sans width fixe : flex:1 répartit équitablement → splitter au centre */
         .editor-pane { background: var(--bg-editor); position: relative; flex: 1; }
         .preview-pane { background: var(--bg-preview); position: relative; flex: 1; }
 
@@ -390,106 +390,86 @@
 (function() {
     'use strict';
 
-    const editor = document.getElementById('editor');
-    const preview = document.getElementById('preview');
-    const previewFS = document.getElementById('previewFS');
-    const charCount = document.getElementById('charCount');
-    const wordCountEl = document.getElementById('wordCount');
-    const mainContainer = document.getElementById('mainContainer');
-    const splitter = document.getElementById('splitter');
-    const fullscreenOverlay = document.getElementById('fullscreenOverlay');
-    const toast = document.getElementById('toast');
+    var editor = document.getElementById('editor');
+    var preview = document.getElementById('preview');
+    var previewFS = document.getElementById('previewFS');
+    var charCount = document.getElementById('charCount');
+    var wordCountEl = document.getElementById('wordCount');
+    var mainContainer = document.getElementById('mainContainer');
+    var splitter = document.getElementById('splitter');
+    var fullscreenOverlay = document.getElementById('fullscreenOverlay');
+    var toast = document.getElementById('toast');
 
-    const sampleMarkdown = `# Bienvenue dans Markdown Live ✨
-
-Un **éditeur Markdown** en temps réel avec prévisualisation instantanée. Collez ou écrivez votre contenu à gauche !
-
-## Fonctionnalités
-
-- 🎯 Prévisualisation en temps réel
-- ↔️ Panneau redimensionnable par glissement
-- 📺 Mode plein écran pour la prévisualisation
-- 💾 Export en fichier HTML
-- 📱 PWA — installable sur mobile et desktop
-- ⌨️ Support du copier-coller
-
-## Exemples de styles
-
-### Typographie
-
-Voici un texte avec du *style italique*, du **gras**, et du ***gras italique***. Vous pouvez aussi utiliser ~~barré~~.
-
-### Liens et images
-
-Visitez [GitHub](https://github.com) pour en savoir plus.
-
-> 💡 Le markdown est un langage de balisage léger, créé par John Gruber en 2004. Il permet d'écrire du texte formaté avec une syntaxe simple.
-
-### Liste à puces
-
-1. Premier élément
-2. Deuxième élément
-3. Troisième élément
-   - Sous-élément A
-   - Sous-élément B
-
-### Tâches
-
-- [x] Créer l'éditeur Markdown
-- [x] Ajouter la prévisualisation HTML
-- [x] Implémenter le panneau redimensionnable
-- [ ] Ajouter le thème sombre pour la preview
-- [ ] Support des équations LaTeX
-
-### Tableau
-
-| Fonctionnalité | Statut | Priorité |
-|---------------|--------|----------|
-| Éditeur Markdown | ✅ Fait | Haute |
-| Prévisualisation | ✅ Fait | Haute |
-| Panneau mobile | ✅ Fait | Moyenne |
-| Plein écran | ✅ Fait | Moyenne |
-| Export HTML | ✅ Fait | Basse |
-
-### Bloc de code
-
-\`\`\`javascript
-function saluer(nom) {
-    return \`Bonjour, \${nom} ! 👋\`;
-}
-
-console.log(saluer("Monde"));
-// → Bonjour, Monde ! 👋
-\`\`\`
-
-\`\`\`python
-def fibonacci(n) {
-    let a = 0, b = 1;
-    for (let i = 0; i < n; i++) {
-        [a, b] = [b, a + b];
-    }
-    return a;
-}
-
-console.log(Array.from({length: 10}, (_, i) => fibonacci(i)));
-// → [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
-\`\`\`
-
-### Séparateur
-
----
-
-## Raccourcis clavier
-
-| Touches | Action |
-|---------|--------|
-| \`F11\` | Plein écran |
-| \`Échap\` | Quitter le plein écran |
-| \`Ctrl+S\` | Exporter en HTML |
-
----
-
-*Merci d'avoir essayé Markdown Live ! 🚀*`;
+    var sampleMarkdown = [
+        '# Bienvenue dans Markdown Live ✨',
+        '',
+        'Un **éditeur Markdown** en temps réel avec prévisualisation instantanée. Collez ou écrivez votre contenu à gauche !',
+        '',
+        '## Fonctionnalités',
+        '',
+        '- 🎯 Prévisualisation en temps réel',
+        '- ↔️ Panneau redimensionnable par glissement',
+        '- 📺 Mode plein écran pour la prévisualisation',
+        '- 💾 Export en fichier HTML',
+        '- 📱 PWA — installable sur mobile et desktop',
+        '- ⌨️ Support du copier-coller',
+        '',
+        '## Exemples de styles',
+        '',
+        '### Typographie',
+        '',
+        'Voici un texte avec du *style italique*, du **gras**, et du ***gras italique***. Vous pouvez aussi utiliser ~~barré~~.',
+        '',
+        '### Liens et images',
+        '',
+        'Visitez [GitHub](https://github.com) pour en savoir plus.',
+        '',
+        '> 💡 Le markdown est un langage de balisage léger, créé par John Gruber en 2004. Il permet d\'écrire du texte formaté avec une syntaxe simple.',
+        '',
+        '### Liste à puces',
+        '',
+        '1. Premier élément',
+        '2. Deuxième élément',
+        '3. Troisième élément',
+        '   - Sous-élément A',
+        '   - Sous-élément B',
+        '',
+        '### Tâches',
+        '',
+        '- [x] Créer l\'éditeur Markdown',
+        '- [x] Ajouter la prévisualisation HTML',
+        '- [x] Implémenter le panneau redimensionnable',
+        '- [ ] Ajouter le thème sombre pour la preview',
+        '- [ ] Support des équations LaTeX',
+        '',
+        '### Tableau',
+        '',
+        '| Fonctionnalité | Statut | Priorité |',
+        '|---------------|--------|----------|',
+        '| Éditeur Markdown | ✅ Fait | Haute |',
+        '| Prévisualisation | ✅ Fait | Haute |',
+        '| Panneau mobile | ✅ Fait | Moyenne |',
+        '| Plein écran | ✅ Fait | Moyenne |',
+        '| Export HTML | ✅ Fait | Basse |',
+        '',
+        '### Bloc de code',
+        '',
+        '```javascript',
+        'function saluer(nom) {',
+        '    return "Bonjour, " + nom + " ! 👋";',
+        '}',
+        '',
+        'console.log(saluer("Monde"));',
+        '// → Bonjour, Monde ! 👋',
+        '```',
+        '',
+        '### Séparateur',
+        '',
+        '---',
+        '',
+        '*Merci d\'avoir essayé Markdown Live ! 🚀*',
+        ''
+    ].join('\n');
 
     function renderMarkdown(md) {
         if (typeof marked !== 'undefined') {
@@ -500,15 +480,15 @@ console.log(Array.from({length: 10}, (_, i) => fibonacci(i)));
     }
 
     function updatePreview() {
-        const md = editor.value;
+        var md = editor.value;
         preview.innerHTML = renderMarkdown(md);
         previewFS.innerHTML = renderMarkdown(md);
         updateStats(md);
     }
 
     function updateStats(text) {
-        const chars = text.length;
-        const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+        var chars = text.length;
+        var words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
         charCount.textContent = chars + ' caractère' + (chars > 1 ? 's' : '');
         wordCountEl.textContent = words + ' mot' + (words !== 1 ? 's' : '');
     }
@@ -516,20 +496,20 @@ console.log(Array.from({length: 10}, (_, i) => fibonacci(i)));
     function showToast(msg) {
         toast.textContent = msg;
         toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2200);
+        setTimeout(function() { toast.classList.remove('show'); }, 2200);
     }
 
-    let updateTimeout;
-    editor.addEventListener('input', () => {
+    var updateTimeout;
+    editor.addEventListener('input', function() {
         clearTimeout(updateTimeout);
         updateTimeout = setTimeout(updatePreview, 80);
     });
 
-    editor.addEventListener('keydown', (e) => {
+    editor.addEventListener('keydown', function(e) {
         if (e.key === 'Tab') {
             e.preventDefault();
-            const start = editor.selectionStart;
-            const end = editor.selectionEnd;
+            var start = editor.selectionStart;
+            var end = editor.selectionEnd;
             editor.value = editor.value.substring(0, start) + '    ' + editor.value.substring(end);
             editor.selectionStart = editor.selectionEnd = start + 4;
             updatePreview();
@@ -540,7 +520,8 @@ console.log(Array.from({length: 10}, (_, i) => fibonacci(i)));
         }
     });
 
-    let isDragging = false;
+    // ── SPLITTER DRAG ──
+    var isDragging = false;
 
     splitter.addEventListener('mousedown', startDrag);
     splitter.addEventListener('touchstart', startDrag, { passive: false });
@@ -552,18 +533,18 @@ console.log(Array.from({length: 10}, (_, i) => fibonacci(i)));
         document.body.style.cursor = 'col-resize';
         document.body.style.userSelect = 'none';
 
-        const onMove = (ev) => {
+        var onMove = function(ev) {
             if (!isDragging) return;
-            const clientX = ev.touches ? ev.touches[0].clientX : ev.clientX;
-            const containerRect = mainContainer.getBoundingClientRect();
-            let newPercent = ((clientX - containerRect.left) / containerRect.width) * 100;
+            var clientX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+            var containerRect = mainContainer.getBoundingClientRect();
+            var newPercent = ((clientX - containerRect.left) / containerRect.width) * 100;
             newPercent = Math.max(15, Math.min(85, newPercent));
 
-            editorPane.style.flex = 'none';
-            editorPane.style.width = newPercent + '%';
+            document.getElementById('editorPane').style.flex = 'none';
+            document.getElementById('editorPane').style.width = newPercent + '%';
         };
 
-        const onEnd = () => {
+        var onEnd = function() {
             isDragging = false;
             splitter.classList.remove('active');
             document.body.style.cursor = '';
@@ -580,16 +561,15 @@ console.log(Array.from({length: 10}, (_, i) => fibonacci(i)));
         document.addEventListener('touchend', onEnd);
     }
 
-    const editorPane = document.getElementById('editorPane');
-
-    let isFullscreen = false;
+    // ── FULLSCREEN ──
+    var isFullscreen = false;
 
     function enterFullscreen() {
         isFullscreen = true;
         mainContainer.classList.add('fullscreen');
         fullscreenOverlay.classList.add('visible');
         updatePreview();
-        showToast('👁️ Prévisualisation en plein écran — appuyez Échap pour quitter');
+        showToast('👁️ Plein écran — Échap pour quitter');
     }
 
     function exitFullscreen() {
@@ -599,72 +579,74 @@ console.log(Array.from({length: 10}, (_, i) => fibonacci(i)));
         editor.focus();
     }
 
-    document.getElementById('btnFullscreen').addEventListener('click', () => {
+    document.getElementById('btnFullscreen').addEventListener('click', function() {
         if (isFullscreen) exitFullscreen();
         else enterFullscreen();
     });
 
     document.getElementById('btnCloseFullscreen').addEventListener('click', exitFullscreen);
 
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && isFullscreen) exitFullscreen();
     });
 
-    document.getElementById('btnSample').addEventListener('click', () => {
+    // ── SAMPLE ──
+    document.getElementById('btnSample').addEventListener('click', function() {
         editor.value = sampleMarkdown;
         updatePreview();
         showToast('📄 Exemple chargé !');
     });
 
-    document.getElementById('btnCopyHTML').addEventListener('click', () => {
-        const htmlContent = preview.innerHTML;
-        navigator.clipboard.writeText(htmlContent).then(() => {
-            showToast('✅ HTML copié dans le presse-papiers !');
-        }).catch(() => {
-            const ta = document.createElement('textarea');
+    // ── COPY HTML ──
+    document.getElementById('btnCopyHTML').addEventListener('click', function() {
+        var htmlContent = preview.innerHTML;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(htmlContent).then(function() {
+                showToast('✅ HTML copié !');
+            }).catch(fallbackCopy);
+        } else {
+            fallbackCopy();
+        }
+        function fallbackCopy() {
+            var ta = document.createElement('textarea');
             ta.value = htmlContent;
             document.body.appendChild(ta);
             ta.select();
             document.execCommand('copy');
             document.body.removeChild(ta);
             showToast('✅ HTML copié !');
-        });
+        }
     });
 
+    // ── EXPORT HTML ──
     function exportHTML() {
-        const rendered = preview.innerHTML;
-        const fullHTML = \`<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Markdown Export</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1e293b;line-height:1.8;padding:40px 20px;max-width:760px;margin:0 auto;font-size:15px}
-h1{font-size:2rem;font-weight:800;margin:.9em 0 .4em;padding-bottom:.3em;border-bottom:2px solid #e2e8f0}
-h2{font-size:1.55rem;font-weight:700;margin:1.1em 0 .4em}
-h3{font-size:1.25rem;font-weight:600;margin:.8em 0 .3em}
-p{margin:.6em 0}a{color:#6366f1;text-decoration:none}a:hover{text-decoration:underline}strong{font-weight:700}
-code{background:#f1f5f9;padding:2px 7px;border-radius:4px;font-family:'Fira Code',monospace;font-size:.88em;color:#be185d}
-pre{background:#1e293b;color:#e2e8f0;padding:16px 20px;border-radius:10px;overflow-x:auto;margin:1em 0}
-pre code{background:none;color:inherit;padding:0;font-size:13.5px;line-height:1.65}
-blockquote{border-left:4px solid #6366f1;margin:1em 0;padding:.6em 1em;background:rgba(99,102,241,.05);border-radius:0 10px 10px 0;color:#475569}
-ul,ol{padding-left:1.8em;margin:.6em 0}li{margin:.25em 0}img{max-width:100%;border-radius:10px}
-table{width:100%;border-collapse:collapse;margin:1em 0}th{background:#f1f5f9;padding:10px 14px;text-align:left;font-weight:600;border:1px solid #e2e8f0}
-td{padding:9px 14px;border:1px solid #e2e8f0}tr:nth-child(even) td{background:#fafbfd}hr{border:none;height:2px;background:linear-gradient(to right,transparent,#cbd5e1,transparent);margin:1.5em 0}
-input[type=checkbox]{accent-color:#6366f1;margin-right:6px}
-@media(max-width:600px){body{padding:20px 14px}}
-</style>
-</head>
-<body>
-\${rendered}
-</body>
-</html>\`;
+        var rendered = preview.innerHTML;
+        var fullHTML = '<!DOCTYPE html>\n<html lang="fr">\n<head>\n';
+        fullHTML += '<meta charset="UTF-8">\n';
+        fullHTML += '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
+        fullHTML += '<title>Markdown Export</title>\n';
+        fullHTML += '<style>\n';
+        fullHTML += '*{margin:0;padding:0;box-sizing:border-box}\n';
+        fullHTML += 'body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:#1e293b;line-height:1.8;padding:40px 20px;max-width:760px;margin:0 auto;font-size:15px}\n';
+        fullHTML += 'h1{font-size:2rem;font-weight:800;margin:.9em 0 .4em;padding-bottom:.3em;border-bottom:2px solid #e2e8f0}\n';
+        fullHTML += 'h2{font-size:1.55rem;font-weight:700;margin:1.1em 0 .4em}\n';
+        fullHTML += 'h3{font-size:1.25rem;font-weight:600;margin:.8em 0 .3em}\n';
+        fullHTML += 'p{margin:.6em 0}a{color:#6366f1;text-decoration:none}a:hover{text-decoration:underline}strong{font-weight:700}\n';
+        fullHTML += "code{background:#f1f5f9;padding:2px 7px;border-radius:4px;font-family:'Fira Code',monospace;font-size:.88em;color:#be185d}\n";
+        fullHTML += 'pre{background:#1e293b;color:#e2e8f0;padding:16px 20px;border-radius:10px;overflow-x:auto;margin:1em 0}\n';
+        fullHTML += "pre code{background:none;color:inherit;padding:0;font-size:13.5px;line-height:1.65}\n";
+        fullHTML += 'blockquote{border-left:4px solid #6366f1;margin:1em 0;padding:.6em 1em;background:rgba(99,102,241,.05);border-radius:0 10px 10px 0;color:#475569}\n';
+        fullHTML += "ul,ol{padding-left:1.8em;margin:.6em 0}li{margin:.25em 0}img{max-width:100%;border-radius:10px}\n";
+        fullHTML += 'table{width:100%;border-collapse:collapse;margin:1em 0}th{background:#f1f5f9;padding:10px 14px;text-align:left;font-weight:600;border:1px solid #e2e8f0}\n';
+        fullHTML += 'td{padding:9px 14px;border:1px solid #e2e8f0}tr:nth-child(even) td{background:#fafbfd}hr{border:none;height:2px;background:linear-gradient(to right,transparent,#cbd5e1,transparent);margin:1.5em 0}\n';
+        fullHTML += 'input[type=checkbox]{accent-color:#6366f1;margin-right:6px}\n';
+        fullHTML += '@media(max-width:600px){body{padding:20px 14px}}\n';
+        fullHTML += '</style>\n</head>\n<body>\n';
+        fullHTML += rendered + '\n</body>\n</html>';
 
-        const blob = new Blob([fullHTML], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        var blob = new Blob([fullHTML], { type: 'text/html' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
         a.href = url;
         a.download = 'markdown-export.html';
         a.click();
@@ -674,34 +656,47 @@ input[type=checkbox]{accent-color:#6366f1;margin-right:6px}
 
     document.getElementById('btnExport').addEventListener('click', exportHTML);
 
-    // PWA
-    if ('serviceWorker' in navigator) {
-        const swCode = \`const CACHE_NAME = 'markdown-live-v1';
-self.addEventListener('install', (e) => { e.waitUntil(self.skipWaiting()); self.skipWaiting(); });
-self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); });
-self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request).catch(() => new Response('Offline'))); });\`;
-        const swBlob = new Blob([swCode], { type: 'application/javascript' });
-        navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+    // ── PWA MANIFEST (clean data URI) ──
+    var manifestEl = document.getElementById('manifest-link');
+    if (manifestEl) {
+        try {
+            var manifestJSON = JSON.stringify({
+                name: 'Markdown Live Preview',
+                short_name: 'MDLive',
+                start_url: '.',
+                display: 'standalone',
+                background_color: '#0f172a',
+                theme_color: '#0f172a',
+                icons: [{
+                    src: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#6366f1"/><text x="96" y="135" text-anchor="middle" font-size="120" font-weight="bold" fill="white">M</text></svg>'),
+                    sizes: '192x192',
+                    type: 'image/svg+xml'
+                }]
+            });
+            manifestEl.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(manifestJSON);
+        } catch (e) {
+            console.warn('Manifest error:', e);
+        }
     }
 
-    const manifestData = {
-        name: "Markdown Live Preview",
-        short_name: "MDLive",
-        start_url: ".",
-        display: "standalone",
-        background_color: "#0f172a",
-        theme_color: "#0f172a",
-        icons: [{
-            src: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#6366f1"/><text x="96" y="135" text-anchor="middle" font-size="120" font-weight="bold" fill="white">M</text></svg>'),
-            sizes: "192x192",
-            type: "image/svg+xml",
-            purpose: "any maskable"
-        }]
-    };
+    // ── PWA SERVICE WORKER (safe registration) ──
+    if ('serviceWorker' in navigator) {
+        try {
+            var swURL = URL.createObjectURL(
+                new Blob([
+                    "var CACHE='ml-v1';",
+                    "self.addEventListener('install',function(e){self.skipWaiting()});",
+                    "self.addEventListener('activate',function(e){e.waitUntil(clients.claim())});",
+                    "self.addEventListener('fetch',function(e){})"
+                ], { type: 'application/javascript' })
+            );
+            navigator.serviceWorker.register(swURL).catch(function(){});
+        } catch (e) {
+            console.warn('SW registration skipped');
+        }
+    }
 
-    const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
-    document.getElementById('manifest-link').href = URL.createObjectURL(manifestBlob);
-
+    // ── INIT ──
     editor.value = sampleMarkdown;
     updatePreview();
 
